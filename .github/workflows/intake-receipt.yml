@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   receipt:
-    if: contains(github.event.issue.labels.*.name, 'challenge')
+    if: contains(github.event.issue.labels.*.name, 'challenge') && (github.event.action == 'opened' || github.event.label.name == 'challenge')
     runs-on: ubuntu-24.04
     steps:
       - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
