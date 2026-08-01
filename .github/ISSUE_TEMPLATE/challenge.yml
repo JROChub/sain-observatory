@@ -1,0 +1,58 @@
+name: Submit a Sain challenge
+description: Challenge a bounded claim with reproducible, privacy-safe evidence.
+title: "[Challenge]: "
+labels: ["challenge", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This submission is public. Do not include secrets, personal data, private datasets, or harmful payloads.
+  - type: dropdown
+    id: challenge_class
+    attributes:
+      label: Challenge class
+      options:
+        - counterexample
+        - reproduction_request
+        - alternative_dataset
+        - adversarial_environment
+        - safety_probe
+        - causal_intervention
+        - branch_inconsistency
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target claim or artifact digest
+      description: Provide the exact version, URL, or sha256 identity being challenged.
+    validations:
+      required: true
+  - type: textarea
+    id: procedure
+    attributes:
+      label: Reproduction or falsification procedure
+      description: Give bounded steps, expected result, observed result, and environment.
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: Evidence URL or private-evidence commitment
+      description: Public safe URL or sha256 commitment plus a safe disclosure process.
+    validations:
+      required: true
+  - type: textarea
+    id: assumptions
+    attributes:
+      label: Assumptions and uncertainty
+      description: State what this challenge does and does not establish.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and privacy declaration
+      options:
+        - label: I have not included secrets, personal data, private datasets, exploit payloads, or harmful physical-action instructions.
+          required: true

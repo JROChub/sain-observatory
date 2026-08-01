@@ -1,0 +1,87 @@
+name: Sign public challenge intake
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
+jobs:
+  receipt:
+    if: contains(github.event.issue.labels.*.name, 'challenge')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v3.0.6
+      - name: Commit to the public submission without copying its body
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p receipt
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re
+          event = json.loads(pathlib.Path(os.environ["EVENT_PATH"]).read_text())
+          issue = event["issue"]
+          body = issue.get("body") or ""
+          match = re.search(r"### Challenge class\s*\n\s*([a-z_]+)", body)
+          allowed = {
+              "counterexample", "reproduction_request", "alternative_dataset",
+              "adversarial_environment", "safety_probe", "causal_intervention",
+              "branch_inconsistency",
+          }
+          challenge_class = match.group(1) if match else ""
+          if challenge_class not in allowed:
+              raise SystemExit("unrecognized or missing challenge class")
+          receipt = {
+              "schema": 1,
+              "repository": os.environ["REPOSITORY"],
+              "issue_number": issue["number"],
+              "issue_url": issue["html_url"],
+              "submitter": issue["user"]["login"],
+              "created_at": issue["created_at"],
+              "challenge_class": challenge_class,
+              "body_sha256": hashlib.sha256(body.encode()).hexdigest(),
+              "body_bytes": len(body.encode()),
+              "workflow_run_id": int(os.environ["RUN_ID"]),
+              "source_sha": os.environ["SOURCE_SHA"],
+              "privacy": "receipt commits to public body but does not duplicate it",
+              "non_claim": "intake_identity_and_history_not_challenge_truth_or_adjudication",
+          }
+          encoded = json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+          pathlib.Path("receipt/intake.json").write_text(encoded)
+          pathlib.Path("receipt/intake.sha256").write_text(
+              hashlib.sha256(encoded.encode()).hexdigest() + "\n"
+          )
+          PY
+      - name: Sign and verify pinned workflow identity
+        env:
+          CERTIFICATE_IDENTITY: https://github.com/JROChub/sain-observatory/.github/workflows/intake-receipt.yml@refs/heads/main
+        run: |
+          cosign sign-blob --yes --bundle receipt/intake.sigstore.json receipt/intake.json
+          cosign verify-blob receipt/intake.json \
+            --bundle receipt/intake.sigstore.json \
+            --certificate-identity "$CERTIFICATE_IDENTITY" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-challenge-intake-${{ github.event.issue.number }}
+          path: receipt
+          if-no-files-found: error
+          retention-days: 90
+      - name: Attach receipt identity to the public issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          DIGEST="$(cat receipt/intake.sha256)"
+          gh issue comment "$ISSUE" --repo "$REPOSITORY" \
+            --body "Signed intake receipt: sha256:$DIGEST. Workflow evidence: https://github.com/$REPOSITORY/actions/runs/$RUN_ID. This receipt proves intake history, not challenge truth."

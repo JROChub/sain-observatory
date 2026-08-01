@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "service": "Sain Public Observatory",
+  "public_url": "https://github.com/JROChub/sain-observatory/issues/new?template=challenge.yml",
+  "submission_transport": "GitHub public issue form and Issues API",
+  "accepted_challenge_classes": [
+    "counterexample",
+    "reproduction_request",
+    "alternative_dataset",
+    "adversarial_environment",
+    "safety_probe",
+    "causal_intervention",
+    "branch_inconsistency"
+  ],
+  "receipt": "GitHub OIDC/Sigstore signed data-minimized issue commitment",
+  "retention": "public issue history plus 90-day signed workflow artifact",
+  "privacy": "public metadata only; private evidence represented by commitments",
+  "non_claim": "open_challenge_intake_not_independent_institutional_adjudication_or_automatic_truth"
+}

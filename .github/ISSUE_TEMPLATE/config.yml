@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security-sensitive report
+    url: https://github.com/JROChub/sain-observatory/security/advisories/new
+    about: Use private security reporting for vulnerabilities; never publish secrets or exploit payloads.
