@@ -25,3 +25,7 @@ true. Dispositions must preserve confirmed, falsified, inconclusive, and
 contested outcomes rather than silently deleting unfavorable results.
 
 The authoritative machine-readable service descriptor is observatory.json.
+
+An explicit packet for independent threat-model and evidence review is in
+[`review/`](review/README.md). Project-controlled comments do not count as
+independent review.
