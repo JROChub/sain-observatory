@@ -2,7 +2,7 @@ name: Sign public challenge intake
 
 on:
   issues:
-    types: [opened]
+    types: [opened, labeled]
 
 permissions:
   contents: read
